@@ -1,0 +1,60 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_USE_CLOUD_FUNCTIONS": "false"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDNGNi8ABUlNqjMglGyQ9qClW-LT4nja8Y",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "ravika-533a3.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "ravika-533a3",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "ravika-533a3.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "508586850560",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:508586850560:web:b803b2e6bf3440da501be5",
+        "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-CMSD0766DW",
+        "EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION": "us-central1",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "508586850560-lljgd4fcgehjnp9h7m7e749u4ue53mfp.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "508586850560-l1li94ljjo1b7nh5nh62nkf63dmq39m5.apps.googleusercontent.com",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "24ddcf27-90f1-41b3-b849-241b5be9b109",
+        "EXPO_PUBLIC_USE_CLOUD_FUNCTIONS": "false"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDNGNi8ABUlNqjMglGyQ9qClW-LT4nja8Y",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "ravika-533a3.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "ravika-533a3",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "ravika-533a3.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "508586850560",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:508586850560:web:b803b2e6bf3440da501be5",
+        "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-CMSD0766DW",
+        "EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION": "us-central1",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "508586850560-lljgd4fcgehjnp9h7m7e749u4ue53mfp.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "508586850560-l1li94ljjo1b7nh5nh62nkf63dmq39m5.apps.googleusercontent.com",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "24ddcf27-90f1-41b3-b849-241b5be9b109",
+        "EXPO_PUBLIC_USE_CLOUD_FUNCTIONS": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

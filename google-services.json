@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "508586850560",
+    "project_id": "ravika-533a3",
+    "storage_bucket": "ravika-533a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508586850560:android:1b3dfd094aadaff2501be5",
+        "android_client_info": {
+          "package_name": "com.ravika.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "508586850560-ahmso6ue9j2euj2ns5cua34dgn59mbt0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ravika.app",
+            "certificate_hash": "ad5d58564a588c696f536a085c69dc6a459c1bd2"
+          }
+        },
+        {
+          "client_id": "508586850560-l1li94ljjo1b7nh5nh62nkf63dmq39m5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ravika.app",
+            "certificate_hash": "7c9e25df1c26caf773dbbdcdd04533368fcb04d3"
+          }
+        },
+        {
+          "client_id": "508586850560-lljgd4fcgehjnp9h7m7e749u4ue53mfp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvHSW6UA3QLay8ytc2ggVBL1Gt0OFqEk8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "508586850560-lljgd4fcgehjnp9h7m7e749u4ue53mfp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
