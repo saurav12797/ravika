@@ -19,10 +19,7 @@ import {
   subDays,
   subMonths,
 } from 'date-fns';
-import {
-  getReactionDefinition,
-  getShortReactionLabel,
-} from '@/constants/reactions';
+import { getReactionDefinition, getShortReactionLabel } from '@/constants/reactions';
 import {
   getSentFeelingBreakdown,
   getSentFeelingMessages,
@@ -35,12 +32,7 @@ import { Colors, Radii, Shadows, Spacing, Typography } from '@/theme/colors';
 import { formatActivityTime } from '@/utils/dates';
 
 export type SentPeriod =
-  | 'today'
-  | 'yesterday'
-  | 'week'
-  | 'month'
-  | 'sixMonths'
-  | 'custom';
+  'today' | 'yesterday' | 'week' | 'month' | 'sixMonths' | 'custom';
 
 const PERIODS: Array<{ id: SentPeriod; label: string }> = [
   { id: 'today', label: 'Today' },
@@ -112,11 +104,7 @@ type Props = {
 /**
  * Per-emoji sent counts with Today / Yesterday / This week / 1 month / 6 months / Custom.
  */
-export function SentFeelingsSummary({
-  connectionIds,
-  userId,
-  refreshKey = 0,
-}: Props) {
+export function SentFeelingsSummary({ connectionIds, userId, refreshKey = 0 }: Props) {
   const [period, setPeriod] = useState<SentPeriod>('today');
   const [customStart, setCustomStart] = useState(
     format(subDays(new Date(), 7), 'yyyy-MM-dd'),
@@ -130,9 +118,7 @@ export function SentFeelingsSummary({
     label: string;
   } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [detailMessages, setDetailMessages] = useState<SentFeelingMessage[]>(
-    [],
-  );
+  const [detailMessages, setDetailMessages] = useState<SentFeelingMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<FeelingBreakdown>({
     total: 0,
@@ -158,11 +144,7 @@ export function SentFeelingsSummary({
     }
     setLoading(true);
     try {
-      const breakdown = await getSentFeelingBreakdown(
-        connectionIds,
-        userId,
-        range,
-      );
+      const breakdown = await getSentFeelingBreakdown(connectionIds, userId, range);
       // For "today", blend with local optimistic counts if remote is behind.
       if (period === 'today' && localTotal > breakdown.total) {
         const merged = { ...breakdown.byReaction };
@@ -187,14 +169,7 @@ export function SentFeelingsSummary({
     } finally {
       setLoading(false);
     }
-  }, [
-    userId,
-    connectionIds,
-    period,
-    range,
-    localBy,
-    localTotal,
-  ]);
+  }, [userId, connectionIds, period, range, localBy, localTotal]);
 
   useEffect(() => {
     void load();
@@ -239,11 +214,7 @@ export function SentFeelingsSummary({
   const visibleRows = expanded ? rows : rows.slice(0, TOP_N);
   const hiddenCount = Math.max(0, rows.length - TOP_N);
 
-  const openDetail = async (row: {
-    key: string;
-    emoji: string;
-    label: string;
-  }) => {
+  const openDetail = async (row: { key: string; emoji: string; label: string }) => {
     if (!userId) return;
     setDetail(row);
     setDetailLoading(true);
@@ -280,7 +251,7 @@ export function SentFeelingsSummary({
   const periodTitle =
     period === 'custom' && customStart && customEnd
       ? `${customStart} to ${customEnd}`
-      : PERIODS.find((p) => p.id === period)?.label ?? 'Today';
+      : (PERIODS.find((p) => p.id === period)?.label ?? 'Today');
 
   return (
     <View style={styles.wrap}>
@@ -319,9 +290,7 @@ export function SentFeelingsSummary({
         {loading ? (
           <ActivityIndicator color={Colors.rose} style={{ marginVertical: 16 }} />
         ) : rows.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No feelings sent in this period yet.
-          </Text>
+          <Text style={styles.emptyText}>No feelings sent in this period yet.</Text>
         ) : (
           <>
             {visibleRows.map((row) => (
@@ -350,9 +319,7 @@ export function SentFeelingsSummary({
                 onPress={() => setExpanded((v) => !v)}
                 style={styles.showMoreBtn}
                 accessibilityRole="button"
-                accessibilityLabel={
-                  expanded ? 'Show less' : `Show ${hiddenCount} more`
-                }
+                accessibilityLabel={expanded ? 'Show less' : `Show ${hiddenCount} more`}
               >
                 <Text style={styles.showMoreText}>
                   {expanded ? 'Show less' : `Show more (${hiddenCount})`}
@@ -376,10 +343,7 @@ export function SentFeelingsSummary({
         onRequestClose={() => setCustomOpen(false)}
       >
         <Pressable style={styles.modalBgCenter} onPress={() => setCustomOpen(false)}>
-          <Pressable
-            style={styles.modalCard}
-            onPress={(e) => e.stopPropagation()}
-          >
+          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>Custom dates</Text>
             <Text style={styles.modalHint}>Use YYYY-MM-DD</Text>
             <Text style={styles.fieldLabel}>From</Text>
@@ -401,10 +365,7 @@ export function SentFeelingsSummary({
               style={styles.input}
             />
             <View style={styles.modalActions}>
-              <Pressable
-                onPress={() => setCustomOpen(false)}
-                style={styles.modalCancel}
-              >
+              <Pressable onPress={() => setCustomOpen(false)} style={styles.modalCancel}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </Pressable>
               <Pressable onPress={applyCustom} style={styles.modalApply}>
@@ -422,10 +383,7 @@ export function SentFeelingsSummary({
         onRequestClose={() => setDetail(null)}
       >
         <Pressable style={styles.modalBg} onPress={() => setDetail(null)}>
-          <Pressable
-            style={styles.detailCard}
-            onPress={(e) => e.stopPropagation()}
-          >
+          <Pressable style={styles.detailCard} onPress={(e) => e.stopPropagation()}>
             <View style={styles.detailHeader}>
               <Text style={styles.detailEmoji}>{detail?.emoji}</Text>
               <View style={styles.detailTitleWrap}>
@@ -444,16 +402,15 @@ export function SentFeelingsSummary({
             </View>
 
             {detailLoading ? (
-              <ActivityIndicator
-                color={Colors.rose}
-                style={{ marginVertical: 24 }}
-              />
+              <ActivityIndicator color={Colors.rose} style={{ marginVertical: 24 }} />
             ) : detailMessages.length === 0 ? (
               <Text style={styles.emptyText}>No messages found.</Text>
             ) : (
               <ScrollView
                 style={styles.detailList}
                 contentContainerStyle={styles.detailListPad}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
               >
                 {detailMessages.map((m) => (
                   <View key={m.id} style={styles.detailRow}>
@@ -669,7 +626,8 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing['2xl'],
-    maxHeight: '78%',
+    height: '90%',
+    maxHeight: '90%',
     marginTop: 'auto',
     gap: Spacing.md,
   },
@@ -693,7 +651,7 @@ const styles = StyleSheet.create({
     color: Colors.roseDark,
     fontSize: 16,
   },
-  detailList: { flexGrow: 0 },
+  detailList: { flex: 1, minHeight: 0 },
   detailListPad: { gap: Spacing.sm, paddingBottom: Spacing.lg },
   detailRow: {
     backgroundColor: Colors.cream,

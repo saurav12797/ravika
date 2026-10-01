@@ -22,11 +22,7 @@ import { getReactionDefinition } from '@/constants/reactions';
 import { getCurrentUser } from '@/services/authService';
 import { getDb, getFirebaseFunctions } from '@/services/firebase';
 import { toMillis } from '@/services/firestoreUtils';
-import type {
-  Interaction,
-  PaginatedResult,
-  ReactionType,
-} from '@/types/models';
+import type { Interaction, PaginatedResult, ReactionType } from '@/types/models';
 import { dayKey } from '@/utils/dates';
 import { AppError } from '@/utils/errors';
 import { pickFeelingMessage } from '@/utils/feelingMessages';
@@ -41,10 +37,7 @@ import { notifyFeelingPush } from '@/services/notificationService';
 const INTERACTIONS = 'interactions';
 const CONNECTIONS = 'connections';
 
-function mapInteraction(
-  id: string,
-  data: Record<string, unknown>,
-): Interaction {
+function mapInteraction(id: string, data: Record<string, unknown>): Interaction {
   return {
     id,
     connectionId: String(data.connectionId),
@@ -52,14 +45,11 @@ function mapInteraction(
     toUserId: String(data.toUserId),
     reactionType: data.reactionType as ReactionType,
     customReactionId:
-      data.customReactionId != null
-        ? String(data.customReactionId)
-        : undefined,
+      data.customReactionId != null ? String(data.customReactionId) : undefined,
     emoji: String(data.emoji ?? ''),
     title: String(data.title ?? ''),
     message: String(data.message ?? ''),
-    animationId:
-      data.animationId != null ? String(data.animationId) : undefined,
+    animationId: data.animationId != null ? String(data.animationId) : undefined,
     createdAt: toMillis(data.createdAt as Parameters<typeof toMillis>[0]),
     dayKey: String(data.dayKey ?? dayKey()),
   };
@@ -105,6 +95,11 @@ function isFunctionsUnavailable(error: unknown): boolean {
   );
 }
 
+function resolveMessagePlaceholders(message: string, recipientName?: string): string {
+  const replacement = recipientName?.trim() || 'you';
+  return message.replace(/\{(?:n|name)\}/gi, replacement);
+}
+
 /**
  * Direct Firestore write when Cloud Functions are unavailable (Spark).
  * Single batched write — no pre-read — so emoji sends feel instant.
@@ -143,9 +138,7 @@ async function sendReactionDirect(
     interactionCount: increment(1),
     [`unreadCounts.${input.toUserId}`]: increment(1),
     updatedAt: serverTimestamp(),
-    ...(input.reactionType === 2
-      ? { missYouCount: increment(1) }
-      : {}),
+    ...(input.reactionType === 2 ? { missYouCount: increment(1) } : {}),
   });
 
   try {
@@ -172,9 +165,7 @@ async function sendReactionDirect(
  * Cloud Function 404/CORS lag. Set EXPO_PUBLIC_USE_CLOUD_FUNCTIONS=true when
  * Blaze Functions are deployed.
  */
-export async function sendReaction(
-  input: SendReactionInput,
-): Promise<Interaction> {
+export async function sendReaction(input: SendReactionInput): Promise<Interaction> {
   const user = getCurrentUser();
   if (!user) {
     throw new AppError('auth/unauthenticated', 'Please sign in to continue.');
@@ -193,25 +184,27 @@ export async function sendReaction(
   }
 
   const { toDisplayName, ...rest } = input;
+  const recipientName = toDisplayName?.trim() || 'you';
   // Never persist meta catalog titles like "Create Custom Feeling".
   const resolvedTitle =
     input.title?.trim() ||
-    (def?.isMeta
-      ? input.message?.trim().slice(0, 40) || 'Custom feeling'
-      : def?.title) ||
+    (def?.isMeta ? input.message?.trim().slice(0, 40) || 'Custom feeling' : def?.title) ||
     'Reaction';
   // Predefined: always catalog emoji + a rotating sub-message (never title-only).
-  const isPredefinedCatalog =
-    !!def && !def.isMeta && !input.customReactionId;
+  const isPredefinedCatalog = !!def && !def.isMeta && !input.customReactionId;
   const resolvedEmoji = isPredefinedCatalog
     ? def.emoji
-    : input.emoji ?? (def?.isMeta ? '💕' : def?.emoji) ?? '💫';
+    : (input.emoji ?? (def?.isMeta ? '💕' : def?.emoji) ?? '💫');
   // Prefer caller-picked message so UI + send stay in sync; else shuffle-pick once.
   const resolvedMessage = isPredefinedCatalog
-    ? input.message?.trim() || pickFeelingMessage(def)
-    : input.message?.trim() ||
-      def?.defaultMessage ||
-      resolvedTitle;
+    ? resolveMessagePlaceholders(
+        input.message?.trim() || pickFeelingMessage(def),
+        recipientName,
+      )
+    : resolveMessagePlaceholders(
+        input.message?.trim() || def?.defaultMessage || resolvedTitle,
+        recipientName,
+      );
 
   const payload = {
     ...rest,
@@ -226,10 +219,10 @@ export async function sendReaction(
 
   if (env.useCloudFunctions) {
     try {
-      const callable = httpsCallable<
-        typeof payload,
-        SendInteractionResponse
-      >(getFirebaseFunctions(), 'sendInteraction');
+      const callable = httpsCallable<typeof payload, SendInteractionResponse>(
+        getFirebaseFunctions(),
+        'sendInteraction',
+      );
 
       const result = await callable(payload);
       const data = result.data.interaction;
@@ -238,11 +231,7 @@ export async function sendReaction(
       if (!isFunctionsUnavailable(error)) {
         throw error instanceof AppError
           ? error
-          : new AppError(
-              'unknown',
-              'Could not send that. Try again.',
-              error,
-            );
+          : new AppError('unknown', 'Could not send that. Try again.', error);
       }
       mapped = await sendReactionDirect(payload);
     }
@@ -261,13 +250,15 @@ export async function sendReaction(
     title: mapped.title,
     customFeelingId: mapped.customReactionId,
   });
-  useSentCountsStore.getState().record(
-    mapped.customReactionId
-      ? `custom:${mapped.customReactionId}`
-      : mapped.reactionType === 'custom' || mapped.reactionType === 'custom_text'
-        ? `custom:${mapped.emoji}:${mapped.title}`
-        : mapped.reactionType,
-  );
+  useSentCountsStore
+    .getState()
+    .record(
+      mapped.customReactionId
+        ? `custom:${mapped.customReactionId}`
+        : mapped.reactionType === 'custom' || mapped.reactionType === 'custom_text'
+          ? `custom:${mapped.emoji}:${mapped.title}`
+          : mapped.reactionType,
+    );
   celebrateSend(mapped, toDisplayName);
 
   // Push in background — never block the send path.
@@ -379,11 +370,7 @@ export async function getRecentActivity(
   ];
 
   const q = cursor
-    ? query(
-        collection(getDb(), INTERACTIONS),
-        ...constraints,
-        startAfter(cursor),
-      )
+    ? query(collection(getDb(), INTERACTIONS), ...constraints, startAfter(cursor))
     : query(collection(getDb(), INTERACTIONS), ...constraints);
 
   const snaps = await getDocs(q);
@@ -473,9 +460,7 @@ export async function getSentFeelingBreakdown(
       ) {
         continue;
       }
-      const createdAt = toMillis(
-        data.createdAt as Parameters<typeof toMillis>[0],
-      );
+      const createdAt = toMillis(data.createdAt as Parameters<typeof toMillis>[0]);
       if (!inRange(createdAt)) continue;
       add({
         reactionType: data.reactionType as ReactionType,
@@ -570,9 +555,7 @@ export async function getSentFeelingMessages(
       ) {
         continue;
       }
-      const createdAt = toMillis(
-        data.createdAt as Parameters<typeof toMillis>[0],
-      );
+      const createdAt = toMillis(data.createdAt as Parameters<typeof toMillis>[0]);
       if (!inRange(createdAt)) continue;
       const item = {
         reactionType: data.reactionType as ReactionType,
@@ -614,9 +597,7 @@ export async function getSentFeelingMessages(
     }),
   );
 
-  return out
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, max);
+  return out.sort((a, b) => b.createdAt - a.createdAt).slice(0, max);
 }
 
 /**

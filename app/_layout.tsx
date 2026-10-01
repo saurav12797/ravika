@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import '@/services/firebase';
 import { OfflineBanner } from '@/components/ui';
 import { HeaderBrand } from '@/components/HeaderBrand';
+import { AppBackdrop } from '@/components/AppBackdrop';
 import { LaunchSplash } from '@/components/LaunchSplash';
 import { ReactionBurst } from '@/components/ReactionBurst';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -78,8 +79,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const needsProfile =
-        !profile || !profile.username || !profile.displayName;
+      const needsProfile = !profile || !profile.username || !profile.displayName;
 
       if (needsProfile) {
         if (!onProfileSetup) {
@@ -111,13 +111,14 @@ export default function RootLayout() {
           <ErrorBoundary label="root">
             <StatusBar style="dark" />
             <OfflineBanner />
+            <AppBackdrop />
             <AuthGate>
               <ErrorBoundary label="navigation">
                 <Stack
                   screenOptions={{
                     headerShown: false,
                     contentStyle: { backgroundColor: Colors.background },
-                    animation: 'fade',
+                    animation: 'slide_from_right',
                   }}
                 >
                   <Stack.Screen name="index" />

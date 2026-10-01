@@ -16,10 +16,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Avatar, Button, TextField, LoadingState } from '@/components/ui';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import {
-  checkUsernameAvailable,
-  updateProfile,
-} from '@/services/userService';
+import { checkUsernameAvailable, updateProfile } from '@/services/userService';
 import { uploadAvatar } from '@/services/storageService';
 import { useAuthStore } from '@/stores/authStore';
 import { Colors, Radii, Spacing, TouchTarget, Typography } from '@/theme/colors';
@@ -63,12 +60,7 @@ function ProfileScreenInner() {
     setUsername(profile?.username ?? '');
     setBio(profile?.bio ?? '');
     setGender(profile?.gender);
-  }, [
-    profile?.displayName,
-    profile?.username,
-    profile?.bio,
-    profile?.gender,
-  ]);
+  }, [profile?.displayName, profile?.username, profile?.bio, profile?.gender]);
 
   useEffect(() => {
     if (!isLoading && user && !profile) {
@@ -88,10 +80,7 @@ function ProfileScreenInner() {
     return (
       <View style={[styles.flex, styles.centerPad]}>
         <Text style={styles.error}>Please sign in again.</Text>
-        <Button
-          title="Go to login"
-          onPress={() => router.replace('/(auth)/login')}
-        />
+        <Button title="Go to login" onPress={() => router.replace('/(auth)/login')} />
       </View>
     );
   }
@@ -105,9 +94,7 @@ function ProfileScreenInner() {
   }
 
   const email =
-    user?.email?.trim() ||
-    (profile as { email?: string } | null)?.email ||
-    null;
+    user?.email?.trim() || (profile as { email?: string } | null)?.email || null;
   const phone = profile.phoneE164 || user.phoneNumber || null;
 
   const validateUsername = async (value: string) => {
@@ -168,8 +155,7 @@ function ProfileScreenInner() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
       quality: 0.85,
     });
     if (result.canceled || !result.assets[0]) return;
@@ -200,9 +186,7 @@ function ProfileScreenInner() {
   const onLogout = () => {
     if (Platform.OS === 'web') {
       const ok =
-        typeof window !== 'undefined'
-          ? window.confirm('Log out of Ravika?')
-          : true;
+        typeof window !== 'undefined' ? window.confirm('Log out of Ravika?') : true;
       if (ok) void doLogout();
       return;
     }
@@ -294,10 +278,7 @@ function ProfileScreenInner() {
                   style={[styles.genderChip, selected && styles.genderSelected]}
                 >
                   <Text
-                    style={[
-                      styles.genderText,
-                      selected && styles.genderTextSelected,
-                    ]}
+                    style={[styles.genderText, selected && styles.genderTextSelected]}
                   >
                     {g.label}
                   </Text>

@@ -29,13 +29,7 @@ function initialsFromName(name?: string): string {
   return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
-export function Avatar({
-  uri,
-  name,
-  size = 48,
-  presence,
-  style,
-}: AvatarProps) {
+export function Avatar({ uri, name, size = 48, presence, style }: AvatarProps) {
   const initials = useMemo(() => initialsFromName(name), [name]);
   const radius = size / 2;
   const presenceSize = Math.max(10, Math.round(size * 0.22));
@@ -44,30 +38,24 @@ export function Avatar({
     <View
       accessibilityRole="image"
       accessibilityLabel={name ? `Avatar for ${name}` : 'Avatar'}
-      style={[
-        styles.wrap,
-        { width: size, height: size, borderRadius: radius },
-        style,
-      ]}
+      style={[styles.wrap, { width: size, height: size, borderRadius: radius }, style]}
     >
       {uri ? (
         <Image
           source={{ uri }}
-          style={{ width: size, height: size, borderRadius: radius }}
+          resizeMode="contain"
+          style={{
+            width: size,
+            height: size,
+            borderRadius: radius,
+            backgroundColor: Colors.blush,
+          }}
         />
       ) : (
         <View
-          style={[
-            styles.fallback,
-            { width: size, height: size, borderRadius: radius },
-          ]}
+          style={[styles.fallback, { width: size, height: size, borderRadius: radius }]}
         >
-          <Text
-            style={[
-              styles.initials,
-              { fontSize: Math.round(size * 0.36) },
-            ]}
-          >
+          <Text style={[styles.initials, { fontSize: Math.round(size * 0.36) }]}>
             {initials}
           </Text>
         </View>

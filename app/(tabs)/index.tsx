@@ -1,13 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui';
@@ -16,14 +9,8 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { PersonFeelCard } from '@/components/PersonFeelCard';
 import { QuickFeelSheet } from '@/components/QuickFeelSheet';
 import { SentFeelingsSummary } from '@/components/SentFeelingsSummary';
-import {
-  useConnections,
-  usePendingRequests,
-} from '@/hooks/useConnections';
-import {
-  cancelRequest,
-  respondToRequest,
-} from '@/services/connectionService';
+import { useConnections, usePendingRequests } from '@/hooks/useConnections';
+import { cancelRequest, respondToRequest } from '@/services/connectionService';
 import { getUser } from '@/services/userService';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecentFeelingsStore } from '@/stores/recentFeelingsStore';
@@ -31,6 +18,7 @@ import { useSentCountsStore } from '@/stores/sentCountsStore';
 import { Colors, Spacing, Typography } from '@/theme/colors';
 import type { UserProfile, RelationshipType } from '@/types/models';
 import { toUserMessage } from '@/utils/errors';
+import { pickHomeTagline } from '@/constants/homeTaglines';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -38,11 +26,7 @@ export default function HomeScreen() {
   const profile = useAuthStore((s) => s.profile);
   const userId = useAuthStore((s) => s.user?.uid);
   const { pinned, withPeers, loading, error, refreshPeers } = useConnections();
-  const {
-    incoming,
-    outgoing,
-    refresh: refreshRequests,
-  } = usePendingRequests();
+  const { incoming, outgoing, refresh: refreshRequests } = usePendingRequests();
 
   const hydrateSent = useSentCountsStore((s) => s.hydrate);
   const mergeRemote = useSentCountsStore((s) => s.mergeRemote);
@@ -50,6 +34,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [sentRefreshKey, setSentRefreshKey] = useState(0);
   const [gridOrderKey, setGridOrderKey] = useState(0);
+  const [homeTagline, setHomeTagline] = useState(() => pickHomeTagline());
   const [feelTarget, setFeelTarget] = useState<{
     connectionId: string;
     toUserId: string;
@@ -57,10 +42,7 @@ export default function HomeScreen() {
     startOnCustom?: boolean;
   } | null>(null);
 
-  const connectionIds = useMemo(
-    () => withPeers.map((p) => p.connection.id),
-    [withPeers],
-  );
+  const connectionIds = useMemo(() => withPeers.map((p) => p.connection.id), [withPeers]);
 
   const bumpSent = () => setSentRefreshKey((k) => k + 1);
 
@@ -97,10 +79,7 @@ export default function HomeScreen() {
       await hydrateSent();
       const recentStore = useRecentFeelingsStore.getState();
       await recentStore.hydrate();
-      if (
-        useSentCountsStore.getState().total === 0 &&
-        recentStore.items.length > 0
-      ) {
+      if (useSentCountsStore.getState().total === 0 && recentStore.items.length > 0) {
         const by: Record<string, number> = {};
         for (const item of recentStore.items) {
           by[String(item.reactionType)] = item.count;
@@ -111,6 +90,12 @@ export default function HomeScreen() {
     })();
   }, [hydrateSent, mergeRemote]);
 
+  useFocusEffect(
+    useCallback(() => {
+      setHomeTagline((current) => pickHomeTagline(current));
+    }, []),
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
     refreshPeers();
@@ -120,10 +105,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const accept = async (
-    requestId: string,
-    asRelationship?: RelationshipType,
-  ) => {
+  const accept = async (requestId: string, asRelationship?: RelationshipType) => {
     try {
       await respondToRequest(requestId, 'accept', asRelationship);
       refreshRequests();
@@ -174,15 +156,12 @@ export default function HomeScreen() {
           },
         ]}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />
         }
       >
         <ScreenHeader
           title={`Hey, ${profile?.displayName?.split(' ')[0] ?? 'love'}`}
-          subtitle="One tap - a feeling flies to someone you love"
+          subtitle={homeTagline}
         />
 
         {hasRequests ? (
@@ -222,26 +201,20 @@ export default function HomeScreen() {
         ) : (
           <View style={styles.stack}>
             {feelPeople.map((item) => {
-              const peerId =
-                item.connection.userIds.find((id) => id !== userId) ?? '';
+              const peerId = item.connection.userIds.find((id) => id !== userId) ?? '';
               return (
                 <PersonFeelCard
                   key={item.connection.id}
                   connection={item.connection}
                   peer={item.peer}
                   orderResetKey={gridOrderKey}
-                  onOpenProfile={() =>
-                    router.push(`/connection/${item.connection.id}`)
-                  }
+                  onOpenProfile={() => router.push(`/connection/${item.connection.id}`)}
                   onMoreFeelings={() => {
                     if (!peerId) return;
                     setFeelTarget({
                       connectionId: item.connection.id,
                       toUserId: peerId,
-                      name:
-                        item.peer?.displayName ??
-                        item.peer?.username ??
-                        'them',
+                      name: item.peer?.displayName ?? item.peer?.username ?? 'them',
                     });
                   }}
                   onCustomFeeling={() => {
@@ -249,10 +222,7 @@ export default function HomeScreen() {
                     setFeelTarget({
                       connectionId: item.connection.id,
                       toUserId: peerId,
-                      name:
-                        item.peer?.displayName ??
-                        item.peer?.username ??
-                        'them',
+                      name: item.peer?.displayName ?? item.peer?.username ?? 'them',
                       startOnCustom: true,
                     });
                   }}

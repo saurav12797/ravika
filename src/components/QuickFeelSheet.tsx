@@ -5,6 +5,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -64,9 +65,8 @@ export function QuickFeelSheet({
   const mergeRemoteSent = useSentCountsStore((s) => s.mergeRemote);
   const overallFrequency = useSentCountsStore((s) => s.byReaction);
   const selectUsage = useCallback(
-    (s: {
-      byConnection: Record<string, { items: typeof EMPTY_FEELING_USAGE }>;
-    }) => s.byConnection[connectionId]?.items ?? EMPTY_FEELING_USAGE,
+    (s: { byConnection: Record<string, { items: typeof EMPTY_FEELING_USAGE }> }) =>
+      s.byConnection[connectionId]?.items ?? EMPTY_FEELING_USAGE,
     [connectionId],
   );
   const usageItems = useConnectionFeelingUsageStore(selectUsage);
@@ -80,9 +80,7 @@ export function QuickFeelSheet({
     [withPeers],
   );
 
-  const [mode, setMode] = useState<SheetMode>(
-    startOnCustom ? 'write' : 'pick',
-  );
+  const [mode, setMode] = useState<SheetMode>(startOnCustom ? 'write' : 'pick');
   const [customText, setCustomText] = useState('');
   const [customEmoji, setCustomEmoji] = useState('💌');
   const [showInsertPicker, setShowInsertPicker] = useState(false);
@@ -296,19 +294,14 @@ export function QuickFeelSheet({
       ? 'Write a note — emoji at the bottom left'
       : mode === 'createBanner'
         ? 'Emoji + title + description — saved under Tap to send'
-          : mode === 'customEmoji'
+        : mode === 'customEmoji'
           ? 'Pick 1 emoji and 1 short message'
           : 'Most sent overall on top — tap to send';
 
   const sheetHeight = Math.round(Dimensions.get('window').height * 0.9);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable
           style={[
@@ -339,200 +332,211 @@ export function QuickFeelSheet({
           </View>
 
           {mode === 'createBanner' ? (
-            <View style={styles.bannerCreate}>
-              <FeelingBanner
-                emoji={bannerEmoji}
-                title={bannerTitle || 'Title'}
-                subtitle={bannerSubtitle || 'Description'}
-                preview
-              />
+            <ScrollView
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              <View style={styles.bannerCreate}>
+                <FeelingBanner
+                  emoji={bannerEmoji}
+                  title={bannerTitle || 'Title'}
+                  subtitle={bannerSubtitle || 'Description'}
+                  preview
+                />
 
-              <Text style={styles.fieldLabel}>1. Emoji</Text>
-              <Pressable
-                onPress={() => setBannerPickEmoji((v) => !v)}
-                style={styles.emojiPickRow}
-              >
-                <Text style={styles.emojiPickBig}>{bannerEmoji}</Text>
-                <Text style={styles.emojiPickLabel}>
-                  {bannerPickEmoji ? 'Hide picker' : 'Tap to change emoji'}
-                </Text>
-              </Pressable>
-              {bannerPickEmoji ? (
-                <EmojiPicker onPick={(e) => setBannerEmoji(e)} />
-              ) : null}
-
-              <Text style={styles.fieldLabel}>2. Title</Text>
-              <TextInput
-                value={bannerTitle}
-                onChangeText={setBannerTitle}
-                placeholder="e.g. Miss you yaar"
-                placeholderTextColor={Colors.inkSubtle}
-                maxLength={40}
-                style={styles.input}
-              />
-
-              <Text style={styles.fieldLabel}>3. Description</Text>
-              <TextInput
-                value={bannerSubtitle}
-                onChangeText={setBannerSubtitle}
-                placeholder="Soft line under the title"
-                placeholderTextColor={Colors.inkSubtle}
-                maxLength={80}
-                style={[styles.input, styles.descInput]}
-                multiline
-                textAlignVertical="top"
-              />
-
-              <View style={styles.customActions}>
+                <Text style={styles.fieldLabel}>1. Emoji</Text>
                 <Pressable
-                  onPress={() => setMode('pick')}
-                  style={styles.secondaryBtn}
+                  onPress={() => setBannerPickEmoji((v) => !v)}
+                  style={styles.emojiPickRow}
                 >
-                  <Text style={styles.secondaryText}>Back</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => void createBanner()}
-                  disabled={busy || bannerTitle.trim().length < 2}
-                  style={[
-                    styles.primaryBtn,
-                    (busy || bannerTitle.trim().length < 2) &&
-                      styles.primaryDisabled,
-                  ]}
-                >
-                  <Text style={styles.primaryText}>
-                    {busy ? 'Saving…' : 'Save to Tap to send'}
+                  <Text style={styles.emojiPickBig}>{bannerEmoji}</Text>
+                  <Text style={styles.emojiPickLabel}>
+                    {bannerPickEmoji ? 'Hide picker' : 'Tap to change emoji'}
                   </Text>
                 </Pressable>
-              </View>
-            </View>
-          ) : mode === 'customEmoji' ? (
-            <View style={styles.customBox}>
-              <Text style={styles.fieldLabel}>1. Emoji</Text>
-              <View style={styles.pairEmojiRow}>
-                <Text style={styles.pairEmojiBig}>{customEmoji}</Text>
-                <Text style={styles.pairEmojiHint}>Tap below to choose</Text>
-              </View>
-              <EmojiPicker onPick={(e) => setCustomEmoji(e)} />
+                {bannerPickEmoji ? (
+                  <EmojiPicker onPick={(e) => setBannerEmoji(e)} />
+                ) : null}
 
-              <Text style={styles.fieldLabel}>2. Message</Text>
-              <TextInput
-                value={emojiPairMessage}
-                onChangeText={setEmojiPairMessage}
-                placeholder={`One short line for ${firstName}…`}
-                placeholderTextColor={Colors.inkSubtle}
-                maxLength={80}
-                style={styles.input}
-                autoFocus
-              />
-
-              <View style={styles.customActions}>
-                <Pressable
-                  onPress={() => {
-                    setMode('write');
-                    setEmojiPairMessage('');
-                  }}
-                  style={styles.secondaryBtn}
-                >
-                  <Text style={styles.secondaryText}>Back</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => void sendEmojiPair()}
-                  disabled={busy || !emojiPairMessage.trim()}
-                  style={[
-                    styles.primaryBtn,
-                    (!emojiPairMessage.trim() || busy) &&
-                      styles.primaryDisabled,
-                  ]}
-                >
-                  <Text style={styles.primaryText}>
-                    {busy ? 'Sending…' : 'Send'}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : mode === 'write' ? (
-            <View style={styles.customBox}>
-              <View style={styles.composer}>
+                <Text style={styles.fieldLabel}>2. Title</Text>
                 <TextInput
-                  value={customText}
-                  onChangeText={setCustomText}
-                  placeholder={`Write anything for ${firstName}…`}
+                  value={bannerTitle}
+                  onChangeText={setBannerTitle}
+                  placeholder="e.g. Miss you yaar"
                   placeholderTextColor={Colors.inkSubtle}
+                  maxLength={40}
+                  style={styles.input}
+                />
+
+                <Text style={styles.fieldLabel}>3. Description</Text>
+                <TextInput
+                  value={bannerSubtitle}
+                  onChangeText={setBannerSubtitle}
+                  placeholder="Soft line under the title"
+                  placeholderTextColor={Colors.inkSubtle}
+                  maxLength={80}
+                  style={[styles.input, styles.descInput]}
                   multiline
-                  maxLength={280}
-                  style={[styles.longInput, styles.noOutline]}
-                  autoFocus
                   textAlignVertical="top"
                 />
-                <View style={styles.composerFooter}>
+
+                <View style={styles.customActions}>
+                  <Pressable onPress={() => setMode('pick')} style={styles.secondaryBtn}>
+                    <Text style={styles.secondaryText}>Back</Text>
+                  </Pressable>
                   <Pressable
-                    onPress={() => setShowInsertPicker((v) => !v)}
+                    onPress={() => void createBanner()}
+                    disabled={busy || bannerTitle.trim().length < 2}
                     style={[
-                      styles.inBoxEmoji,
-                      showInsertPicker && styles.inBoxEmojiOn,
+                      styles.primaryBtn,
+                      (busy || bannerTitle.trim().length < 2) && styles.primaryDisabled,
                     ]}
-                    accessibilityRole="button"
-                    accessibilityLabel="Insert emoji into note"
                   >
-                    <Text style={styles.inBoxEmojiText}>☺</Text>
+                    <Text style={styles.primaryText}>
+                      {busy ? 'Saving…' : 'Save to Tap to send'}
+                    </Text>
                   </Pressable>
                 </View>
               </View>
-
-              {showInsertPicker ? (
-                <View style={styles.emojiTray}>
-                  <EmojiPicker onPick={(e) => insertEmoji(e)} />
+            </ScrollView>
+          ) : mode === 'customEmoji' ? (
+            <ScrollView
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              <View style={styles.customBox}>
+                <Text style={styles.fieldLabel}>1. Emoji</Text>
+                <View style={styles.pairEmojiRow}>
+                  <Text style={styles.pairEmojiBig}>{customEmoji}</Text>
+                  <Text style={styles.pairEmojiHint}>Tap below to choose</Text>
                 </View>
-              ) : null}
+                <EmojiPicker onPick={(e) => setCustomEmoji(e)} />
 
-              <Pressable
-                onPress={() => {
-                  setShowInsertPicker(false);
-                  setMode('customEmoji');
-                }}
-                style={styles.optionRow}
-                accessibilityRole="button"
-              >
-                <Text style={styles.optionEmoji}>{customEmoji}</Text>
-                <View style={styles.optionTextWrap}>
-                  <Text style={styles.optionTitle}>Set Custom emoji</Text>
-                  <Text style={styles.optionSub}>
-                    Pick 1 emoji + 1 message — replaces the note above
-                  </Text>
+                <Text style={styles.fieldLabel}>2. Message</Text>
+                <TextInput
+                  value={emojiPairMessage}
+                  onChangeText={setEmojiPairMessage}
+                  placeholder={`One short line for ${firstName}…`}
+                  placeholderTextColor={Colors.inkSubtle}
+                  maxLength={80}
+                  style={styles.input}
+                  autoFocus
+                />
+
+                <View style={styles.customActions}>
+                  <Pressable
+                    onPress={() => {
+                      setMode('write');
+                      setEmojiPairMessage('');
+                    }}
+                    style={styles.secondaryBtn}
+                  >
+                    <Text style={styles.secondaryText}>Back</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void sendEmojiPair()}
+                    disabled={busy || !emojiPairMessage.trim()}
+                    style={[
+                      styles.primaryBtn,
+                      (!emojiPairMessage.trim() || busy) && styles.primaryDisabled,
+                    ]}
+                  >
+                    <Text style={styles.primaryText}>{busy ? 'Sending…' : 'Send'}</Text>
+                  </Pressable>
                 </View>
-                <Text style={styles.optionChevron}>›</Text>
-              </Pressable>
+              </View>
+            </ScrollView>
+          ) : mode === 'write' ? (
+            <ScrollView
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              <View style={styles.customBox}>
+                <View style={styles.composer}>
+                  <TextInput
+                    value={customText}
+                    onChangeText={setCustomText}
+                    placeholder={`Write anything for ${firstName}…`}
+                    placeholderTextColor={Colors.inkSubtle}
+                    multiline
+                    maxLength={280}
+                    style={[styles.longInput, styles.noOutline]}
+                    autoFocus
+                    textAlignVertical="top"
+                  />
+                  <View style={styles.composerFooter}>
+                    <Pressable
+                      onPress={() => setShowInsertPicker((v) => !v)}
+                      style={[styles.inBoxEmoji, showInsertPicker && styles.inBoxEmojiOn]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Insert emoji into note"
+                    >
+                      <Text style={styles.inBoxEmojiText}>☺</Text>
+                    </Pressable>
+                  </View>
+                </View>
 
-              <View style={styles.customActions}>
+                {showInsertPicker ? (
+                  <View style={styles.emojiTray}>
+                    <EmojiPicker onPick={(e) => insertEmoji(e)} />
+                  </View>
+                ) : null}
+
                 <Pressable
                   onPress={() => {
-                    if (startOnCustom) {
-                      onClose();
-                    } else {
-                      setMode('pick');
-                      setShowInsertPicker(false);
-                    }
+                    setShowInsertPicker(false);
+                    setMode('customEmoji');
                   }}
-                  style={styles.secondaryBtn}
+                  style={styles.optionRow}
+                  accessibilityRole="button"
                 >
-                  <Text style={styles.secondaryText}>
-                    {startOnCustom ? 'Close' : 'Back'}
-                  </Text>
+                  <Text style={styles.optionEmoji}>{customEmoji}</Text>
+                  <View style={styles.optionTextWrap}>
+                    <Text style={styles.optionTitle}>Set Custom emoji</Text>
+                    <Text style={styles.optionSub}>
+                      Pick 1 emoji + 1 message — replaces the note above
+                    </Text>
+                  </View>
+                  <Text style={styles.optionChevron}>›</Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => void sendCustom()}
-                  disabled={busy || !customText.trim()}
-                  style={[
-                    styles.primaryBtn,
-                    (!customText.trim() || busy) && styles.primaryDisabled,
-                  ]}
-                >
-                  <Text style={styles.primaryText}>
-                    {busy ? 'Sending…' : 'Send feeling'}
-                  </Text>
-                </Pressable>
+
+                <View style={styles.customActions}>
+                  <Pressable
+                    onPress={() => {
+                      if (startOnCustom) {
+                        onClose();
+                      } else {
+                        setMode('pick');
+                        setShowInsertPicker(false);
+                      }
+                    }}
+                    style={styles.secondaryBtn}
+                  >
+                    <Text style={styles.secondaryText}>
+                      {startOnCustom ? 'Close' : 'Back'}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void sendCustom()}
+                    disabled={busy || !customText.trim()}
+                    style={[
+                      styles.primaryBtn,
+                      (!customText.trim() || busy) && styles.primaryDisabled,
+                    ]}
+                  >
+                    <Text style={styles.primaryText}>
+                      {busy ? 'Sending…' : 'Send feeling'}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
+            </ScrollView>
           ) : (
             <View style={styles.listWrap}>
               <View style={styles.topActions}>
@@ -543,10 +547,7 @@ export function QuickFeelSheet({
                   <Text style={styles.topActionEmoji}>✨</Text>
                   <Text style={styles.topActionText}>Custom emotion</Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => setMode('write')}
-                  style={styles.topAction}
-                >
+                <Pressable onPress={() => setMode('write')} style={styles.topAction}>
                   <Text style={styles.topActionEmoji}>✍️</Text>
                   <Text style={styles.topActionText}>Send Message</Text>
                 </Pressable>
@@ -656,6 +657,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   listWrap: { flex: 1, minHeight: 0 },
+  formScroll: { flex: 1, minHeight: 0 },
+  formContent: { paddingBottom: Spacing.lg, gap: Spacing.sm },
   topActions: {
     flexDirection: 'row',
     gap: Spacing.sm,

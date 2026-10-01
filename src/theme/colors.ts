@@ -34,9 +34,9 @@ export const Colors = {
   infoSoft: '#E8F4F8',
 
   // Surfaces
-  background: '#FFF6EE',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FFFBF8',
+  background: 'rgba(255,246,238,0.86)',
+  surface: 'rgba(255,255,255,0.80)',
+  surfaceElevated: 'rgba(255,251,248,0.90)',
   overlay: 'rgba(42, 31, 36, 0.45)',
 
   // Presence

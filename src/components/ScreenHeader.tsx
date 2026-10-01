@@ -57,8 +57,17 @@ export function ScreenHeader({
 const styles = StyleSheet.create({
   wrap: {
     marginBottom: Spacing.lg,
+    padding: Spacing.lg,
     overflow: 'hidden',
-    borderRadius: 0,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.34)',
+    shadowColor: Colors.roseDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
   },
   glow: {
     position: 'absolute',
@@ -66,7 +75,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    opacity: 0.55,
+    opacity: 0.8,
   },
   topRow: {
     flexDirection: 'row',
